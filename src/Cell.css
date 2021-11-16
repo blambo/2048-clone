@@ -1,0 +1,8 @@
+.Cell {
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(100, 100, 100, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
