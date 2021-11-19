@@ -84,11 +84,25 @@ function startMergeAfterAdd(appState: AppState, addedToColumn: number): AppState
 
 export function runMergeStep(appState: AppState): AppState {
   let didSomething = false;
+
+  // Remove any gaps
   if (!didSomething) {
     didSomething = removeGaps(appState);
   }
+
+  // Merge on the column added to
   if (!didSomething) {
-    didSomething = maybeMerge(appState);
+    if (appState.lastColumn == null) {
+      throw new Error("Trying to merge without a lastColumn");
+    }
+    didSomething = maybeMerge(appState, appState.lastColumn);
+  }
+
+  // Merge on other columns
+  for (let i = 0; !didSomething && i < appState.grid.length; i++) {
+    if (i !== appState.lastColumn) {
+      didSomething = maybeMerge(appState, i);
+    }
   }
 
   return {
@@ -120,42 +134,42 @@ function removeGaps(appState: AppState): boolean {
   return didSomething;
 }
 
-function maybeMerge(appState: AppState): boolean {
-  const {grid, lastColumn} = appState;
+function maybeMerge(appState: AppState, column: number): boolean {
+  const {grid} = appState;
 
-  // Check last added column
-  if (lastColumn == null) {
-    throw new Error("Trying to merge without a lastColumn");
-  }
-  const maybeRowId = getTopOfColumn(appState, lastColumn)
+  const maybeRowId = getTopOfColumn(appState, column)
   // getTopOfColumn returns the highest empty cell, so need to convert it
   const rowId = maybeRowId == null ? grid[0].length - 1 : maybeRowId - 1;
 
+  if (grid[column][rowId] == null) {
+    return false;
+  }
+
   let increaseBy = 0;
   // Check left
-  if (lastColumn > 0 && grid[lastColumn - 1][rowId] === grid[lastColumn][rowId]) {
+  if (column > 0 && grid[column - 1][rowId] === grid[column][rowId]) {
     increaseBy++;
-    grid[lastColumn - 1][rowId] = null;
+    grid[column - 1][rowId] = null;
   }
   // Check right
-  if (lastColumn < grid.length - 1 && grid[lastColumn + 1][rowId] === grid[lastColumn][rowId]) {
+  if (column < grid.length - 1 && grid[column + 1][rowId] === grid[column][rowId]) {
     increaseBy++;
-    grid[lastColumn + 1][rowId] = null;
+    grid[column + 1][rowId] = null;
   }
   // Check above
-  if (grid[lastColumn][rowId] === grid[lastColumn][rowId - 1]) {
+  if (grid[column][rowId] === grid[column][rowId - 1]) {
     increaseBy++;
   }
 
   // Get next value
   if (increaseBy > 0) {
-    const newValue = getNextValue(grid[lastColumn][rowId] as Value, increaseBy);
+    const newValue = getNextValue(grid[column][rowId] as Value, increaseBy);
 
-    if (grid[lastColumn][rowId] === grid[lastColumn][rowId - 1]) {
-      grid[lastColumn][rowId] = null;
-      grid[lastColumn][rowId - 1] = newValue;
+    if (grid[column][rowId] === grid[column][rowId - 1]) {
+      grid[column][rowId] = null;
+      grid[column][rowId - 1] = newValue;
     } else {
-      grid[lastColumn][rowId] = newValue;
+      grid[column][rowId] = newValue;
     }
 
     // Mark as done something if we were increasing a tile
