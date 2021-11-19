@@ -1,4 +1,9 @@
-# Getting Started with Create React App
+# 2048 clone thingy
+
+Simple game cloned from a game inspired by 2048.
+
+
+# Bootstrapped from Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
