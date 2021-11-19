@@ -2,7 +2,7 @@ import { getNextValue, getValueIndex, MaybeValue, Value, Values } from "./Values
 
 const ROWS = 6;
 const COLUMNS = 5;
-const WIN_CONDITION: Value = "2048";
+const WIN_CONDITION: Value = "512k";
 
 export interface AppState {
   grid: MaybeValue[][];

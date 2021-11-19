@@ -1,4 +1,4 @@
-export type Value = "2" | "4" | "8" | "16" | "32" | "64" | "128" | "256" | "512" | "1024" | "2048";
+export type Value = "2" | "4" | "8" | "16" | "32" | "64" | "128" | "256" | "512" | "1024" | "2048" | "4096" | "8192" | "16k" | "32k" | "64k" | "128k" | "256k" | "512k";
 export type Color = string;
 export type MaybeValue = Value | null;
 
@@ -51,6 +51,38 @@ const FullValues: FullValue[] = [
   {
     value: "2048",
     color: "162, 84, 212",
+  },
+  {
+    value: "4096",
+    color: "243, 168, 188",
+  },
+  {
+    value: "8192",
+    color: "245, 173, 148",
+  },
+  {
+    value: "16k",
+    color: "255, 241, 166",
+  },
+  {
+    value: "32k",
+    color: "180, 249, 165",
+  },
+  {
+    value: "64k",
+    color: "158, 231, 245",
+  },
+  {
+    value: "128k",
+    color: "35, 110, 150",
+  },
+  {
+    value: "256k",
+    color: "21, 178, 211",
+  },
+  {
+    value: "512k",
+    color: "243, 135, 47",
   },
 ];
 
