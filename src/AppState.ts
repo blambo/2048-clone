@@ -10,6 +10,7 @@ export interface AppState {
     start: number;
     end: number;
   }
+  highestSeen: MaybeValue;
   lastColumn: number | null;
   isMerging: boolean;
 }
@@ -22,6 +23,7 @@ export function createAppState(): AppState {
       start: 0,
       end: 2,
     },
+    highestSeen: null,
     lastColumn: null,
     isMerging: false,
   };
@@ -77,12 +79,13 @@ function startMergeAfterAdd(appState: AppState, addedToColumn: number): AppState
     grid: copyGrid(appState.grid),
     nextTile: null,
     nextTileRange: appState.nextTileRange,
+    highestSeen: appState.highestSeen,
     lastColumn: addedToColumn,
     isMerging: true,
   }
 }
 
-export function runMergeStep(appState: AppState): AppState {
+export function runAppStep(appState: AppState): AppState {
   let didSomething = false;
 
   // Remove any gaps
@@ -109,6 +112,7 @@ export function runMergeStep(appState: AppState): AppState {
     grid: appState.grid,
     nextTile: !didSomething ? getNewNextTile(appState.nextTileRange.start, appState.nextTileRange.end) : null,
     nextTileRange: appState.nextTileRange,
+    highestSeen: getCurrentHighest(appState),
     lastColumn: didSomething ? appState.lastColumn : null,
     isMerging: didSomething,
   };
@@ -178,6 +182,30 @@ function maybeMerge(appState: AppState, column: number): boolean {
 
   return false;
 }
+
+function getCurrentHighest(appState: AppState): MaybeValue {
+  const {grid} = appState;
+  let highestIdx = -1;
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid.length; j++) {
+      if (grid[i][j] == null) {
+        break;
+      } else {
+        const currIdx = Values.findIndex(function(val, index) {
+          return val === grid[i][j];
+        });
+        highestIdx = Math.max(highestIdx, currIdx);
+      }
+    }
+  }
+
+  return highestIdx >= 0 ? Values[highestIdx] : null;
+}
+
+
+/*
+ * HELPERS
+ */
 
 function getTopOfColumn(appState: AppState, columnId: number): number | null {
   return appState.grid[columnId].reduce(function(prev, curr, currIdx) {

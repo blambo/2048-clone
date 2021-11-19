@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { addTile, createAppState, runMergeStep } from './AppState';
+import { addTile, createAppState, runAppStep } from './AppState';
 import Grid from './Grid';
 import PreviewTile from './PreviewTile';
 
@@ -9,7 +9,7 @@ function App() {
 
   useEffect(() => {
     if (appState.isMerging) {
-      setTimeout(() => setAppState(runMergeStep(appState)), 200);
+      setTimeout(() => setAppState(runAppStep(appState)), 200);
     }
   });
 
