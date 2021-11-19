@@ -22,13 +22,20 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <AppStats highest={appState.highestSeen} bottomRange={Values[appState.nextTileRange.start]} topRange={Values[appState.nextTileRange.end]} />
-        <Grid grid={appState.grid} addTile={addTileWrapper} />
-        <div className="App-preview-holder">
-          <PreviewTile value={appState.nextTile} />
-        </div>
-      </header>
+      { !appState.hasWon &&
+        <header className="App-header">
+          <AppStats highest={appState.highestSeen} bottomRange={Values[appState.nextTileRange.start]} topRange={Values[appState.nextTileRange.end]} />
+          <Grid grid={appState.grid} addTile={addTileWrapper} />
+          <div className="App-preview-holder">
+            <PreviewTile value={appState.nextTile} />
+          </div>
+        </header>
+      }
+      { appState.hasWon &&
+        <header className="App-header">
+          <div>You WIN!</div>
+        </header>
+      }
     </div>
   );
 }

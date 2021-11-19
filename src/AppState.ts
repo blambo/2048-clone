@@ -2,6 +2,7 @@ import { getNextValue, MaybeValue, Value, Values } from "./Values";
 
 const ROWS = 6;
 const COLUMNS = 5;
+const WIN_CONDITION: Value = "2048";
 
 export interface AppState {
   grid: MaybeValue[][];
@@ -13,6 +14,7 @@ export interface AppState {
   highestSeen: MaybeValue;
   lastColumn: number | null;
   isMerging: boolean;
+  hasWon: boolean;
 }
 
 export function createAppState(): AppState {
@@ -26,6 +28,7 @@ export function createAppState(): AppState {
     highestSeen: null,
     lastColumn: null,
     isMerging: false,
+    hasWon: false,
   };
 }
 
@@ -82,6 +85,7 @@ function startMergeAfterAdd(appState: AppState, addedToColumn: number): AppState
     highestSeen: appState.highestSeen,
     lastColumn: addedToColumn,
     isMerging: true,
+    hasWon: appState.hasWon,
   }
 }
 
@@ -108,13 +112,16 @@ export function runAppStep(appState: AppState): AppState {
     }
   }
 
+  const highestSeen = getCurrentHighest(appState);
+
   return {
     grid: appState.grid,
     nextTile: !didSomething ? getNewNextTile(appState.nextTileRange.start, appState.nextTileRange.end) : null,
     nextTileRange: appState.nextTileRange,
-    highestSeen: getCurrentHighest(appState),
+    highestSeen,
     lastColumn: didSomething ? appState.lastColumn : null,
     isMerging: didSomething,
+    hasWon: highestSeen === WIN_CONDITION,
   };
 }
 
