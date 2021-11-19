@@ -56,8 +56,13 @@ const FullValues: FullValue[] = [
 
 export const Values = FullValues.map(function(fullValue) { return fullValue.value; });
 
-export function getNextValue(value: Value): Value | null {
-  return Values[Values.findIndex(function(curr) { return curr === value; }) + 1];
+export function getNextValue(value: Value, jump: number = 1): Value | null {
+  // Don't let it go out of bounds
+  const index = Math.min(
+    Values.findIndex(function(curr) { return curr === value; }) + jump,
+    Values.length - 1
+  );
+  return Values[index];
 }
 export function getValueColor(value: Value): Color {
   const maybeFullValue = FullValues.find(function(fullValue) { return fullValue.value === value; })

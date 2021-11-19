@@ -9,7 +9,7 @@ function App() {
 
   useEffect(() => {
     if (appState.isMerging) {
-      setTimeout(() => setAppState(runMergeStep(appState)), 500);
+      setTimeout(() => setAppState(runMergeStep(appState)), 200);
     }
   });
 
@@ -23,7 +23,7 @@ function App() {
       <header className="App-header">
         <Grid grid={appState.grid} addTile={addTileWrapper} />
         <div className="App-preview-holder">
-          <PreviewTile value={"8"} />
+          <PreviewTile value={appState.nextTile} />
         </div>
       </header>
     </div>
@@ -31,3 +31,8 @@ function App() {
 }
 
 export default App;
+
+/**
+ * NEXT STEPS:
+ *  - check for merges across grid, not just last column
+ */

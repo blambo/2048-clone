@@ -1,17 +1,17 @@
 import React from "react";
 import Tile from "./Tile";
-import { Value } from "./Values";
+import { MaybeValue } from "./Values";
 import "./PreviewTile.css";
 
 interface PreviewTileProps {
-  value: Value;
+  value: MaybeValue;
 }
 
 function PreviewTile(props: PreviewTileProps) {
   return (
     <div className="PreviewTile">
       <div>Next tile:</div>
-      <Tile value={props.value} />
+      { props.value != null && <Tile value={props.value} /> }
     </div>
   )
 }
