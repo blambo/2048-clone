@@ -34,6 +34,7 @@ function App() {
       { appState.hasWon &&
         <header className="App-header">
           <div>You WIN!</div>
+          <button onMouseDown={() => setAppState(createAppState())}>Start Again</button>
         </header>
       }
     </div>
