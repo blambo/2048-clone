@@ -34,5 +34,6 @@ export default App;
 
 /**
  * NEXT STEPS:
- *  - check for merges across grid, not just last column
+ *  - Updating range of possible tiles
+ *  - Add win condition
  */
