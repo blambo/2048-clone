@@ -1,4 +1,4 @@
-import { getNextValue, MaybeValue, Value, Values } from "./Values";
+import { getNextValue, getValueIndex, MaybeValue, Value, Values } from "./Values";
 
 const ROWS = 6;
 const COLUMNS = 5;
@@ -11,7 +11,7 @@ export interface AppState {
     start: number;
     end: number;
   }
-  highestSeen: MaybeValue;
+  highestSeen: Value;
   lastColumn: number | null;
   isMerging: boolean;
   hasWon: boolean;
@@ -23,9 +23,9 @@ export function createAppState(): AppState {
     nextTile: getNewNextTile(0, 2),
     nextTileRange: {
       start: 0,
-      end: 2,
+      end: 3,
     },
-    highestSeen: null,
+    highestSeen: "2",
     lastColumn: null,
     isMerging: false,
     hasWon: false,
@@ -112,7 +112,14 @@ export function runAppStep(appState: AppState): AppState {
     }
   }
 
-  const highestSeen = getCurrentHighest(appState);
+  const highestSeen = getCurrentHighest(appState) || "2";
+
+  if (!didSomething) {
+    const updatedRange = maybeUpdateRange(appState, highestSeen);
+    if (updatedRange) {
+      didSomething = removeBelowRange(appState);
+    }
+  }
 
   return {
     grid: appState.grid,
@@ -209,6 +216,36 @@ function getCurrentHighest(appState: AppState): MaybeValue {
   return highestIdx >= 0 ? Values[highestIdx] : null;
 }
 
+function maybeUpdateRange(appState: AppState, currHighest: Value): boolean {
+  const idx = getValueIndex(currHighest);
+
+  if (idx >= appState.nextTileRange.end + 6) {
+    appState.nextTileRange.start += 1;
+    appState.nextTileRange.end += 1;
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function removeBelowRange(appState: AppState): boolean {
+  const {grid} = appState;
+  let didSomething = false;
+
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid.length; j++) {
+      if (grid[i][j] != null) {
+        const idx = getValueIndex(grid[i][j] as Value);
+        if (idx < appState.nextTileRange.start) {
+          grid[i][j] = null;
+          didSomething = true;
+        }
+      }
+    }
+  }
+
+  return didSomething;
+}
 
 /*
  * HELPERS

@@ -64,6 +64,11 @@ export function getNextValue(value: Value, jump: number = 1): Value | null {
   );
   return Values[index];
 }
+
+export function getValueIndex(value: Value): number {
+  return Values.findIndex((curr) => { return curr === value; });
+}
+
 export function getValueColor(value: Value): Color {
   const maybeFullValue = FullValues.find(function(fullValue) { return fullValue.value === value; })
   return maybeFullValue == null ? "0, 0, 0" : maybeFullValue.color;
