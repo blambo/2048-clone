@@ -24,6 +24,7 @@ function App() {
     <div className="App">
       { !appState.hasWon &&
         <header className="App-header">
+          <button onMouseDown={() => setAppState(createAppState())}>Start Again</button>
           <AppStats highest={appState.highestSeen} bottomRange={Values[appState.nextTileRange.start]} topRange={Values[appState.nextTileRange.end]} />
           <Grid grid={appState.grid} addTile={addTileWrapper} />
           <div className="App-preview-holder">
@@ -45,6 +46,7 @@ export default App;
 
 /**
  * NEXT STEPS:
- *  - Updating range of possible tiles
- *  - Add win condition
+ *  - where the tiles drop should be the center of merging
+ *  - Save state
+ *  - record history of actions to diagnose bugs
  */

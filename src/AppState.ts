@@ -23,7 +23,7 @@ export function createAppState(): AppState {
     nextTile: getNewNextTile(0, 2),
     nextTileRange: {
       start: 0,
-      end: 3,
+      end: 5,
     },
     highestSeen: "2",
     lastColumn: null,
@@ -219,9 +219,9 @@ function getCurrentHighest(appState: AppState): MaybeValue {
 function maybeUpdateRange(appState: AppState, currHighest: Value): boolean {
   const idx = getValueIndex(currHighest);
 
-  if (idx >= appState.nextTileRange.end + 6) {
-    appState.nextTileRange.start += 1;
-    appState.nextTileRange.end += 1;
+  if (idx >= 10 && Math.floor(idx / 2) + 1 > appState.nextTileRange.end) {
+    appState.nextTileRange.end = Math.floor(idx / 2) + 1;
+    appState.nextTileRange.start = appState.nextTileRange.end - 5;
     return true;
   } else {
     return false;
