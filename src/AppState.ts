@@ -12,6 +12,7 @@ export interface AppState {
     end: number;
   }
   highestSeen: Value;
+  // The last column where a tile was added
   lastColumn: number | null;
   isMerging: boolean;
   hasWon: boolean;
@@ -156,7 +157,7 @@ function maybeMerge(appState: AppState, column: number): boolean {
   const {grid} = appState;
 
   const maybeRowId = getTopOfColumn(appState, column)
-  // getTopOfColumn returns the highest empty cell, so need to convert it
+  // getTopOfColumn returns the highest empty cell, so need to convert it to the highest filled cell
   const rowId = maybeRowId == null ? grid[0].length - 1 : maybeRowId - 1;
 
   if (grid[column][rowId] == null) {
