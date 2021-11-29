@@ -5,13 +5,19 @@ import AppStats from './AppStats';
 import Grid from './Grid';
 import PreviewTile from './PreviewTile';
 import { Values } from './Values';
+import { Storage } from "./Storage";
 
 function App() {
-  const [appState, setAppState] = useState(createAppState());
+  const storage = new Storage();
+  const initialState = storage.hasSavedState() ? storage.loadState() : createAppState();
+
+  const [appState, setAppState] = useState(initialState);
 
   useEffect(() => {
     if (appState.isMerging) {
       setTimeout(() => setAppState(runAppStep(appState)), 200);
+    } else {
+      storage.saveState(appState);
     }
   });
 
@@ -47,6 +53,6 @@ export default App;
 /**
  * NEXT STEPS:
  *  - where the tiles drop should be the center of merging
- *  - Save state
  *  - record history of actions to diagnose bugs
+ *  - add validation of state to avoid cheating
  */
