@@ -1,3 +1,4 @@
+import { chainedMergeTest, multiColumnMergeTest } from "./TestGrids";
 import { getNextValue, getValueIndex, MaybeValue, Value, Values } from "./Values";
 
 const ROWS = 6;
@@ -12,8 +13,8 @@ export interface AppState {
     end: number;
   }
   highestSeen: Value;
-  // The last column where a tile was added
-  lastColumn: number | null;
+  // Columns that recently dropped
+  recentlyDroppedColumns: number[];
   isMerging: boolean;
   hasWon: boolean;
 }
@@ -21,13 +22,13 @@ export interface AppState {
 export function createAppState(): AppState {
   return {
     grid: createGrid(),
-    nextTile: getNewNextTile(0, 2),
+    nextTile: getNewNextTile(0, 5),
     nextTileRange: {
       start: 0,
       end: 5,
     },
     highestSeen: "2",
-    lastColumn: null,
+    recentlyDroppedColumns: [],
     isMerging: false,
     hasWon: false,
   };
@@ -39,7 +40,6 @@ function createGrid(): MaybeValue[][] {
   for (let i = 0; i < COLUMNS; i++) {
     grid[i] = [null, null, null, null, null, null];
   }
-
   return grid;
 }
 
@@ -84,7 +84,7 @@ function startMergeAfterAdd(appState: AppState, addedToColumn: number): AppState
     nextTile: null,
     nextTileRange: appState.nextTileRange,
     highestSeen: appState.highestSeen,
-    lastColumn: addedToColumn,
+    recentlyDroppedColumns: [addedToColumn],
     isMerging: true,
     hasWon: appState.hasWon,
   }
@@ -98,20 +98,24 @@ export function runAppStep(appState: AppState): AppState {
     didSomething = removeGaps(appState);
   }
 
-  // Merge on the column added to
+  // Merge cells
   if (!didSomething) {
-    if (appState.lastColumn == null) {
-      throw new Error("Trying to merge without a lastColumn");
-    }
-    didSomething = maybeMerge(appState, appState.lastColumn);
+    didSomething = maybeSmartMerge(appState);
   }
-
-  // Merge on other columns
-  for (let i = 0; !didSomething && i < appState.grid.length; i++) {
-    if (i !== appState.lastColumn) {
-      didSomething = maybeMerge(appState, i);
-    }
-  }
+  // if (!didSomething) {
+  //   for (let i = 0; i < appState.recentlyDroppedColumns.length; i++) {
+  //     didSomething = maybeMerge(appState, appState.recentlyDroppedColumns[i]) || didSomething;
+  //   }
+  //   if (didSomething) {
+  //     appState.recentlyDroppedColumns = [];
+  //   }
+  // }
+  // // Then on any columns that haven't
+  // if (!didSomething) {
+  //   for (let i = 0; i < appState.grid.length; i++) {
+  //     didSomething = maybeMerge(appState, i) || didSomething;
+  //   }
+  // }
 
   const highestSeen = getCurrentHighest(appState) || "2";
 
@@ -127,7 +131,7 @@ export function runAppStep(appState: AppState): AppState {
     nextTile: !didSomething ? getNewNextTile(appState.nextTileRange.start, appState.nextTileRange.end) : null,
     nextTileRange: appState.nextTileRange,
     highestSeen,
-    lastColumn: didSomething ? appState.lastColumn : null,
+    recentlyDroppedColumns: didSomething ? appState.recentlyDroppedColumns : [],
     isMerging: didSomething,
     hasWon: highestSeen === WIN_CONDITION,
   };
@@ -136,6 +140,7 @@ export function runAppStep(appState: AppState): AppState {
 function removeGaps(appState: AppState): boolean {
   let didSomething = false;
   const { grid } = appState;
+  const droppedColumns: number[] = [];
   for (let i = 0; i < grid.length; i++) {
     const rowId = getTopOfColumn(appState, i);
     if (rowId != null && rowId < grid[i].length - 1) {
@@ -145,6 +150,78 @@ function removeGaps(appState: AppState): boolean {
           grid[i][j] = grid[i][j + 1];
           grid[i][j + 1] = null;
           didSomething = true;
+          // Add to recently dropped
+          if (droppedColumns[droppedColumns.length - 1] !== i) {
+            droppedColumns.push(i);
+          }
+        }
+      }
+    }
+  }
+
+  if (didSomething) {
+    appState.recentlyDroppedColumns = droppedColumns;
+  }
+
+  return didSomething;
+}
+
+/**
+ * This is a slightly silly way to calculate merging, but essentially does two passes over the grid. The first
+ * calculates the number of matching neighbours for each cell. The next pass determines which cell should be merged.
+ *
+ * @param appState The current app state
+ * @returns Whether we merged anything or not
+ */
+function maybeSmartMerge(appState: AppState): boolean {
+  const {grid} = appState;
+  const matchingNeighboursGrid: number[][][][] = neighboursGrid();
+  let didSomething = false;
+
+  for (let i = 0; i < grid.length; i++) {
+    for (let j = 0; j < grid[i].length; j++) {
+      if (grid[i][j] == null) {
+        break;
+      }
+
+      matchingNeighboursGrid[i][j] = getMatchingNeighbours(grid, i, j);
+    }
+  }
+
+  for (let i = 0; i < matchingNeighboursGrid.length; i++) {
+    for (let j = 0; j < matchingNeighboursGrid[i].length; j++) {
+      // If we have no matching neighbours, don't need to worry about the rest
+      if (!matchingNeighboursGrid[i][j] || matchingNeighboursGrid[i][j].length === 0) {
+        continue;
+      }
+
+      const matchingNeighbours = matchingNeighboursGrid[i][j];
+      // When more than 1 neighbour matching, we must be the center and will merge the surrounding cells
+      if (matchingNeighbours.length > 1) {
+        // Should be 2 or 3 elements
+        for (let k = 0; k < matchingNeighbours.length; k++) {
+          const [cellCol, cellRow] = matchingNeighbours[k];
+          grid[cellCol][cellRow] = null;
+          // Don't need to worry about checking neighbours now
+          matchingNeighboursGrid[cellCol][cellRow] = [];
+        }
+        const newValue = getNextValue(grid[i][j] as Value, matchingNeighbours.length);
+        grid[i][j] = newValue;
+        didSomething = true;
+
+      // When we've 1 neighbour, we need to decide if we're the one to merge into
+      } else {
+        const [neighbourCol, neighbourRow] = matchingNeighbours[0];
+        // First check whether the other neighbour just has more matching
+        if (matchingNeighboursGrid[neighbourCol][neighbourRow].length === 1) {
+          // If vertically aligned, we should merge upwards
+          // or if horizontally aligned, merge if we're in a recently dropped column or there's no column
+          if ((neighbourCol === i && j < neighbourRow) || (neighbourRow === j && (appState.recentlyDroppedColumns.findIndex((val) => val === i) >= 0))) {
+            grid[neighbourCol][neighbourRow] = null;
+            matchingNeighboursGrid[neighbourCol][neighbourRow] = [];
+            grid[i][j] = getNextValue(grid[i][j] as Value, 1);
+            didSomething = true;
+          }
         }
       }
     }
@@ -153,49 +230,41 @@ function removeGaps(appState: AppState): boolean {
   return didSomething;
 }
 
-function maybeMerge(appState: AppState, column: number): boolean {
-  const {grid} = appState;
-
-  const maybeRowId = getTopOfColumn(appState, column)
-  // getTopOfColumn returns the highest empty cell, so need to convert it to the highest filled cell
-  const rowId = maybeRowId == null ? grid[0].length - 1 : maybeRowId - 1;
-
-  if (grid[column][rowId] == null) {
-    return false;
+function neighboursGrid(): number[][][][] {
+  const neighbours = [];
+  for (let i = 0; i < COLUMNS; i++) {
+    neighbours[i] = [[], [], [], [], [], []];
   }
+  return neighbours;
+}
 
-  let increaseBy = 0;
+/**
+ *
+ * @param grid The grid to check on
+ * @param column Column of tile to check
+ * @param row Row of tile to check
+ * @returns Number of neighbours matching the value of the tile at (column, row)
+ */
+function getMatchingNeighbours(grid: MaybeValue[][], column: number, row: number): number[][] {
+  const matchingNeighbours = [];
   // Check left
-  if (column > 0 && grid[column - 1][rowId] === grid[column][rowId]) {
-    increaseBy++;
-    grid[column - 1][rowId] = null;
+  if (column > 0 && grid[column - 1][row] === grid[column][row]) {
+    matchingNeighbours.push([column - 1, row]);
   }
   // Check right
-  if (column < grid.length - 1 && grid[column + 1][rowId] === grid[column][rowId]) {
-    increaseBy++;
-    grid[column + 1][rowId] = null;
+  if (column < grid.length - 1 && grid[column + 1][row] === grid[column][row]) {
+    matchingNeighbours.push([column + 1, row]);
   }
   // Check above
-  if (grid[column][rowId] === grid[column][rowId - 1]) {
-    increaseBy++;
+  if (row > 0 && grid[column][row - 1] === grid[column][row]) {
+    matchingNeighbours.push([column, row - 1]);
+  }
+  // Check below
+  if (row < grid[column].length - 1 && grid[column][row + 1] === grid[column][row]) {
+    matchingNeighbours.push([column, row + 1]);
   }
 
-  // Get next value
-  if (increaseBy > 0) {
-    const newValue = getNextValue(grid[column][rowId] as Value, increaseBy);
-
-    if (grid[column][rowId] === grid[column][rowId - 1]) {
-      grid[column][rowId] = null;
-      grid[column][rowId - 1] = newValue;
-    } else {
-      grid[column][rowId] = newValue;
-    }
-
-    // Mark as done something if we were increasing a tile
-    return true;
-  }
-
-  return false;
+  return matchingNeighbours;
 }
 
 function getCurrentHighest(appState: AppState): MaybeValue {

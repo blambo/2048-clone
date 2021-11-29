@@ -52,7 +52,6 @@ export default App;
 
 /**
  * NEXT STEPS:
- *  - where the tiles drop should be the center of merging
  *  - record history of actions to diagnose bugs
  *  - add validation of state to avoid cheating
  */
