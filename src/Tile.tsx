@@ -11,7 +11,7 @@ function Tile(props: TileProps) {
 
   return (
     <div className="Tile" style={generateTileStyle(value)}>
-      <span>{value}</span>
+      <span className="App-text">{value}</span>
     </div>
   );
 }

@@ -13,14 +13,14 @@ function AppStats(props: AppStatsProps) {
   return (
     <div className="AppStats">
       <div className="AppStats-highest">
-        <div>Highest seen:</div>
-        <div className="AppStats-tile-holder">
+        <div className="App-text">Highest seen:</div>
+        <div className="App-text AppStats-tile-holder">
           {props.highest != null && <Tile value={props.highest} />}
         </div>
       </div>
       <div className="AppStats-range-stats">
-        <div>Current Range:</div>
-        <div className="AppStats-range-holder">
+        <div className="App-text">Current Range:</div>
+        <div className="App-text AppStats-range-holder">
           <div className="AppStats-tile-holder">
             <Tile value={props.bottomRange} />
           </div>

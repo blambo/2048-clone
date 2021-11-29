@@ -24,3 +24,7 @@
 .App-stats {
   position: absolute;
 }
+
+.App-text {
+  user-select: none;
+}

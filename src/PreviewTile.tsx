@@ -9,7 +9,7 @@ interface PreviewTileProps {
 
 function PreviewTile(props: PreviewTileProps) {
   return (
-    <div className="PreviewTile">
+    <div className="App-text PreviewTile">
       <div>Next tile:</div>
       { props.value != null && <Tile value={props.value} /> }
     </div>
