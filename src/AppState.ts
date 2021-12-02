@@ -23,9 +23,10 @@ export interface AppState {
   isMerging: boolean;
   hasWon: boolean;
   history: Move[];
+  trackHistory?: boolean;
 }
 
-export function createAppState(): AppState {
+export function createAppState(trackHistory: boolean): AppState {
   return {
     grid: createGrid(),
     nextTile: getNewNextTile(0, 5),
@@ -38,6 +39,7 @@ export function createAppState(): AppState {
     isMerging: false,
     hasWon: false,
     history: [],
+    trackHistory,
   };
 }
 
@@ -88,7 +90,9 @@ export function addTile(appState: AppState, columnId: number, forcedValue?: Valu
 }
 
 function startMergeAfterAdd(appState: AppState, addedToColumn: number, nextTile: Value): AppState {
-  appState.history.push({ value: nextTile, column: addedToColumn });
+  if (appState.trackHistory) {
+    appState.history.push({ value: nextTile, column: addedToColumn });
+  }
   return {
     grid: copyGrid(appState.grid),
     nextTile: null,

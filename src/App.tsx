@@ -7,11 +7,11 @@ import PreviewTile from "./PreviewTile";
 import { Values } from "./Values";
 import { Storage } from "./Storage";
 
-const DEBUG = false;
+const DEBUG = true;
 
 function App() {
   const storage = new Storage();
-  const initialState = storage.hasSavedState() ? storage.loadState() : createAppState();
+  const initialState = storage.hasSavedState() ? storage.loadState() : createAppState(DEBUG);
 
   const [appState, setAppState] = useState(initialState);
   const [showingHistory, setShowingHistory] = useState(false);
@@ -69,7 +69,7 @@ function App() {
       )}
       {!showingHistory && !appState.hasWon && (
         <header className="App-header">
-          <button onMouseDown={() => setAppState(createAppState())}>Start Again</button>
+          <button onMouseDown={() => setAppState(createAppState(DEBUG))}>Start Again</button>
           <AppStats
             highest={appState.highestSeen}
             bottomRange={Values[appState.nextTileRange.start]}
@@ -106,7 +106,7 @@ function App() {
       {!showingHistory && appState.hasWon && (
         <header className="App-header">
           <div className="App-text">You WIN!</div>
-          <button onMouseDown={() => setAppState(createAppState())}>Start Again</button>
+          <button onMouseDown={() => setAppState(createAppState(DEBUG))}>Start Again</button>
         </header>
       )}
     </div>
