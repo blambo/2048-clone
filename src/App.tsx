@@ -7,11 +7,14 @@ import PreviewTile from './PreviewTile';
 import { Values } from './Values';
 import { Storage } from "./Storage";
 
+const DEBUG = true;
+
 function App() {
   const storage = new Storage();
   const initialState = storage.hasSavedState() ? storage.loadState() : createAppState();
 
   const [appState, setAppState] = useState(initialState);
+  const [showingHistory, setShowingHistory] = useState(false);
 
   useEffect(() => {
     if (appState.isMerging) {
@@ -28,7 +31,15 @@ function App() {
 
   return (
     <div className="App">
-      { !appState.hasWon &&
+      { DEBUG &&
+        <button onMouseDown={() => setShowingHistory(!showingHistory)}>Show history</button>
+      }
+      { showingHistory &&
+        <div>
+          {appState.history}
+        </div>
+      }
+      { !showingHistory && !appState.hasWon &&
         <header className="App-header">
           <button onMouseDown={() => setAppState(createAppState())}>Start Again</button>
           <AppStats highest={appState.highestSeen} bottomRange={Values[appState.nextTileRange.start]} topRange={Values[appState.nextTileRange.end]} />
@@ -38,7 +49,7 @@ function App() {
           </div>
         </header>
       }
-      { appState.hasWon &&
+      { !showingHistory && appState.hasWon &&
         <header className="App-header">
           <div className="App-text">You WIN!</div>
           <button onMouseDown={() => setAppState(createAppState())}>Start Again</button>

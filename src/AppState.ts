@@ -5,6 +5,11 @@ const ROWS = 6;
 const COLUMNS = 5;
 const WIN_CONDITION: Value = "512k";
 
+interface Move {
+  column: number;
+  value: Value;
+}
+
 export interface AppState {
   grid: MaybeValue[][];
   nextTile: MaybeValue;
@@ -17,6 +22,7 @@ export interface AppState {
   recentlyDroppedColumns: number[];
   isMerging: boolean;
   hasWon: boolean;
+  history: Move[];
 }
 
 export function createAppState(): AppState {
@@ -31,6 +37,7 @@ export function createAppState(): AppState {
     recentlyDroppedColumns: [],
     isMerging: false,
     hasWon: false,
+    history: [],
   };
 }
 
@@ -66,7 +73,7 @@ export function addTile(appState: AppState, columnId: number): AppState {
     if (appState.grid[columnId][ROWS - 1] === appState.nextTile) {
       const newValue = getNextValue(appState.grid[columnId][ROWS - 1] as Value);
       appState.grid[columnId][ROWS - 1] = newValue;
-      return startMergeAfterAdd(appState, columnId);
+      return startMergeAfterAdd(appState, columnId, appState.nextTile);
     } else {
       return appState;
     }
@@ -74,11 +81,12 @@ export function addTile(appState: AppState, columnId: number): AppState {
   // Add tile to the top of the column
   } else {
     appState.grid[columnId][rowId] = appState.nextTile;
-    return startMergeAfterAdd(appState, columnId);
+    return startMergeAfterAdd(appState, columnId, appState.nextTile);
   }
 }
 
-function startMergeAfterAdd(appState: AppState, addedToColumn: number): AppState {
+function startMergeAfterAdd(appState: AppState, addedToColumn: number, nextTile: Value): AppState {
+  appState.history.push({ value: nextTile, column: addedToColumn });
   return {
     grid: copyGrid(appState.grid),
     nextTile: null,
@@ -87,6 +95,7 @@ function startMergeAfterAdd(appState: AppState, addedToColumn: number): AppState
     recentlyDroppedColumns: [addedToColumn],
     isMerging: true,
     hasWon: appState.hasWon,
+    history: appState.history,
   }
 }
 
@@ -102,20 +111,6 @@ export function runAppStep(appState: AppState): AppState {
   if (!didSomething) {
     didSomething = maybeSmartMerge(appState);
   }
-  // if (!didSomething) {
-  //   for (let i = 0; i < appState.recentlyDroppedColumns.length; i++) {
-  //     didSomething = maybeMerge(appState, appState.recentlyDroppedColumns[i]) || didSomething;
-  //   }
-  //   if (didSomething) {
-  //     appState.recentlyDroppedColumns = [];
-  //   }
-  // }
-  // // Then on any columns that haven't
-  // if (!didSomething) {
-  //   for (let i = 0; i < appState.grid.length; i++) {
-  //     didSomething = maybeMerge(appState, i) || didSomething;
-  //   }
-  // }
 
   const highestSeen = getCurrentHighest(appState) || "2";
 
@@ -134,6 +129,7 @@ export function runAppStep(appState: AppState): AppState {
     recentlyDroppedColumns: didSomething ? appState.recentlyDroppedColumns : [],
     isMerging: didSomething,
     hasWon: highestSeen === WIN_CONDITION,
+    history: appState.history,
   };
 }
 
