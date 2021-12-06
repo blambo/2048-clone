@@ -117,8 +117,10 @@ export default App;
 
 /**
  * NEXT STEPS:
- *  - record history of actions to diagnose bugs
  *  - add validation of state to avoid cheating
+ *  - treat upwards merge as dropped column
+ *  - test out gap closing, maybe bug?
+ *  - add 'see previous state' debug feature
  */
 
 interface MoveHistoryEntryProps {
