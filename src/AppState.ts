@@ -190,6 +190,8 @@ function maybeSmartMerge(appState: AppState): boolean {
     }
   }
 
+  let verticallyMerged: number[] = [];
+
   for (let i = 0; i < matchingNeighboursGrid.length; i++) {
     for (let j = 0; j < matchingNeighboursGrid[i].length; j++) {
       // If we have no matching neighbours, don't need to worry about the rest
@@ -218,10 +220,19 @@ function maybeSmartMerge(appState: AppState): boolean {
           grid[neighbourCol][neighbourRow] = null;
           matchingNeighboursGrid[neighbourCol][neighbourRow] = [];
           grid[i][j] = getNextValue(grid[i][j] as Value, 1);
+
+          // If we're merging vertically we should treat this column as the most recently dropped
+          if (neighbourCol === i) {
+            verticallyMerged.push(i);
+          }
           didSomething = true;
         }
       }
     }
+  }
+
+  if (verticallyMerged.length > 0) {
+    appState.recentlyDroppedColumns = verticallyMerged;
   }
 
   return didSomething;
