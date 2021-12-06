@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import { addTile, createAppState, Move, runAppStep } from "./AppState";
-import AppStats from "./AppStats";
-import Grid from "./Grid";
-import PreviewTile from "./PreviewTile";
-import { Values } from "./Values";
+import { addTile, createAppState, runAppStep } from "./AppState";
 import { Storage } from "./Storage";
+import { cloneAppState } from "./Utils";
+import { GameBoard } from "./GameBoard";
+import { createReplay, MoveHistoryEntry, Replay } from "./MoveHistory";
 
 const DEBUG = true;
 
@@ -14,6 +13,8 @@ function App() {
   const initialState = storage.hasSavedState() ? storage.loadState() : createAppState(DEBUG);
 
   const [appState, setAppState] = useState(initialState);
+  const [prevState, setPrevState] = useState(cloneAppState(appState));
+  const [showingPrevious, setShowPrevious] = useState(false);
   const [showingHistory, setShowingHistory] = useState(false);
   const [replay, setReplay] = useState<Replay | null>(null);
 
@@ -26,6 +27,7 @@ function App() {
   });
 
   function addTileWrapper(columnId: number): void {
+    setPrevState(cloneAppState(appState));
     const newAppState = addTile(appState, columnId);
     setAppState(newAppState);
   }
@@ -47,6 +49,7 @@ function App() {
               Load History
             </button>
           </span>
+          <button onMouseDown={() => setShowPrevious(!showingPrevious)}>Show previous</button>
         </div>
       )}
       {showingHistory && (
@@ -67,43 +70,32 @@ function App() {
           </div>
         </div>
       )}
-      {!showingHistory && !appState.hasWon && (
-        <header className="App-header">
-          <button onMouseDown={() => setAppState(createAppState(DEBUG))}>Start Again</button>
-          <AppStats
-            highest={appState.highestSeen}
-            bottomRange={Values[appState.nextTileRange.start]}
-            topRange={Values[appState.nextTileRange.end]}
-          />
-          <Grid grid={appState.grid} addTile={addTileWrapper} />
-          {replay == null && (
-            <div className="App-preview-holder">
-              <PreviewTile value={appState.nextTile} />
-            </div>
-          )}
-          {replay != null && (
-            <div className="App-preview-holder">
-              <span>
-                {replay.currIndex + 1} of {replay.history.length}
-              </span>
-              <PreviewTile value={replay.history[replay.currIndex]?.value} />
-              <div>
-                <button
-                  onMouseDown={function () {
-                    const currEntry = replay.history[replay.currIndex];
-                    console.log("Adding", currEntry.value, "to", currEntry.column);
-                    setReplay({ history: replay.history, currIndex: replay.currIndex + 1 });
-                    setAppState(addTile(appState, currEntry.column, currEntry.value));
-                  }}
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-          )}
-        </header>
+      {!showingHistory && showingPrevious && (
+        <>
+        <div>SHOWING PREVIOUS!!</div>
+        <GameBoard
+          setAppState={setAppState}
+          createAppState={createAppState}
+          trackHistory={DEBUG}
+          appState={prevState}
+          replay={replay}
+          addTileWrapper={addTileWrapper}
+          setReplay={setReplay}
+        />
+        </>
       )}
-      {!showingHistory && appState.hasWon && (
+      {!showingHistory && !appState.hasWon && !showingPrevious && (
+        <GameBoard
+          setAppState={setAppState}
+          createAppState={createAppState}
+          trackHistory={DEBUG}
+          appState={appState}
+          replay={replay}
+          addTileWrapper={addTileWrapper}
+          setReplay={setReplay}
+        />
+      )}
+      {!showingHistory && !showingPrevious && appState.hasWon && (
         <header className="App-header">
           <div className="App-text">You WIN!</div>
           <button onMouseDown={() => setAppState(createAppState(DEBUG))}>Start Again</button>
@@ -121,32 +113,6 @@ export default App;
  *  - add validation of state to avoid cheating
  *  - test out gap closing, maybe bug?
  */
-
-interface MoveHistoryEntryProps {
-  entry: Move;
-}
-
-function MoveHistoryEntry({ entry }: MoveHistoryEntryProps) {
-  return (
-    <div>
-      <span>{entry.value}</span>
-      <span> into </span>
-      <span>{entry.column}</span>
-    </div>
-  );
-}
-
-interface Replay {
-  history: Move[];
-  currIndex: number;
-}
-
-function createReplay(history: Move[]): Replay {
-  return {
-    history,
-    currIndex: 0,
-  };
-}
 
 function getMoveSpeed(hasReplay: boolean): number {
   if (hasReplay) {
