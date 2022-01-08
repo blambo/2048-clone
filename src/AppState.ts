@@ -144,18 +144,14 @@ function removeGaps(appState: AppState): boolean {
   const { grid } = appState;
   const droppedColumns: number[] = [];
   for (let i = 0; i < grid.length; i++) {
-    const rowId = getTopOfColumn(appState, i);
-    if (rowId != null && rowId < grid[i].length - 1) {
-      for (let j = rowId; j < grid[i].length - 1; j++) {
-        if (grid[i][j + 1] != null) {
-          // Shuffle things down
-          grid[i][j] = grid[i][j + 1];
-          grid[i][j + 1] = null;
-          didSomething = true;
-          // Add to recently dropped
-          if (droppedColumns[droppedColumns.length - 1] !== i) {
-            droppedColumns.push(i);
-          }
+    for (let j = 0; j < grid[i].length - 1; j++) {
+      if (grid[i][j] == null && grid[i][j+1] != null) {
+        // Shuffle things down
+        grid[i][j] = grid[i][j+1];
+        grid[i][j+1] = null;
+        didSomething = true;
+        if (droppedColumns[droppedColumns.length - 1] !== i) {
+          droppedColumns.push(i);
         }
       }
     }

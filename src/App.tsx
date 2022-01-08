@@ -109,9 +109,19 @@ export default App;
 
 /**
  * NEXT STEPS:
- *  - add 'see previous state' debug feature
  *  - add validation of state to avoid cheating
- *  - test out gap closing, maybe bug?
+ *  - add url parameter for turning DEBUG on and off
+ *  - change merging prioritisation from columns to dropped cells
+ *            [ ][ ][8][2][ ]
+ *            [ ][ ][2][X][ ] --- Add 2 to X
+ *            [ ][ ][4][ ][ ]
+ *        This should result in:
+ *            [ ][ ][4][8][ ]
+ *            [ ][ ][ ][ ][ ]
+ *            [ ][ ][ ][ ][ ]
+ *        But currently the 4 moving down is making it merge left
+ *  - add in settings, allow changing of animation speed
+ *  - add in instructions
  */
 
 function getMoveSpeed(hasReplay: boolean): number {
