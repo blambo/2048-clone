@@ -6,9 +6,9 @@ import { cloneAppState } from "./Utils";
 import { GameBoard } from "./GameBoard";
 import { createReplay, MoveHistoryEntry, Replay } from "./MoveHistory";
 
-const DEBUG = true;
-
 function App() {
+  const DEBUG = isDebugMode();
+
   const storage = new Storage();
   const initialState = storage.hasSavedState() ? storage.loadState() : createAppState(DEBUG);
 
@@ -72,16 +72,16 @@ function App() {
       )}
       {!showingHistory && showingPrevious && (
         <>
-        <div>SHOWING PREVIOUS!!</div>
-        <GameBoard
-          setAppState={setAppState}
-          createAppState={createAppState}
-          trackHistory={DEBUG}
-          appState={prevState}
-          replay={replay}
-          addTileWrapper={addTileWrapper}
-          setReplay={setReplay}
-        />
+          <div>SHOWING PREVIOUS!!</div>
+          <GameBoard
+            setAppState={setAppState}
+            createAppState={createAppState}
+            trackHistory={DEBUG}
+            appState={prevState}
+            replay={replay}
+            addTileWrapper={addTileWrapper}
+            setReplay={setReplay}
+          />
         </>
       )}
       {!showingHistory && !appState.hasWon && !showingPrevious && (
@@ -110,7 +110,6 @@ export default App;
 /**
  * NEXT STEPS:
  *  - add validation of state to avoid cheating
- *  - add url parameter for turning DEBUG on and off
  *  - change merging prioritisation from columns to dropped cells
  *            [ ][ ][8][2][ ]
  *            [ ][ ][2][X][ ] --- Add 2 to X
@@ -130,4 +129,25 @@ function getMoveSpeed(hasReplay: boolean): number {
   } else {
     return 200;
   }
+}
+
+function isDebugMode(): boolean {
+  const paramString = window.location.href.split("?")[1];
+
+  try {
+    if (paramString != undefined) {
+      const params = paramString.split("&");
+
+      for (let i = 0; i < params.length; i++) {
+        const [key, value] = params[i].split("=");
+        if (key.toLocaleLowerCase() === "debug" && (value == undefined || value.toLocaleLowerCase() === "true")) {
+          return true;
+        }
+      }
+    }
+  } catch (e) {
+    return false;
+  }
+
+  return false;
 }
