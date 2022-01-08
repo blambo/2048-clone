@@ -345,7 +345,7 @@ function removeBelowRange(appState: AppState): boolean {
   let didSomething = false;
 
   for (let i = 0; i < grid.length; i++) {
-    for (let j = 0; j < grid.length; j++) {
+    for (let j = 0; j < grid[i].length; j++) {
       if (grid[i][j] != null) {
         const idx = getValueIndex(grid[i][j] as Value);
         if (idx < appState.nextTileRange.start) {
